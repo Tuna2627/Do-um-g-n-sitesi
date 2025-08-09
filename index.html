@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happy Birthday</title>
+<style>
+  :root{
+    --bg1:#0f172a;
+    --bg2:#0b1220;
+    --accent:#ff6b6b;
+    --card:#0f172a;
+  }
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  body{
+    background: radial-gradient(1200px 700px at 10% 10%, rgba(255,111,111,0.08), transparent),
+                linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%);
+    color:#f8fafc;
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  }
+
+  .stage{
+    width:100%; max-width:980px; min-height:560px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+    border-radius:18px; box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+    position:relative; overflow:hidden; padding:28px;
+    display:grid; grid-template-columns: 1fr 380px; gap:20px;
+  }
+
+  /* Left: hero area */
+  .hero{
+    padding:10px 18px; display:flex; flex-direction:column; gap:18px; align-items:flex-start; justify-content:center;
+  }
+  h1{
+    font-size: clamp(28px, 4.5vw, 48px); margin:0; letter-spacing: -1px;
+  }
+  .subtitle{ font-size: clamp(14px,2.2vw,18px); color: #dbeafe; opacity:0.95; margin-top:6px;}
+  .message{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.03));
+    border-radius:12px; padding:14px; color:#eef2ff; line-height:1.45;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+    width:100%;
+  }
+
+  /* right: controls + photo */
+  .side{
+    display:flex; flex-direction:column; gap:12px; align-items:stretch;
+  }
+  .photo-frame{
+    height:260px; border-radius:12px; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+    display:flex; align-items:center; justify-content:center; position:relative;
+  }
+  .photo-frame img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .upload{
+    display:flex; gap:8px; align-items:center; justify-content:space-between;
+  }
+  .btn{
+    background:linear-gradient(90deg,#ff7b7b,#ffcd6b); color:#0b1220; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;
+    font-weight:600;
+  }
+  .btn.secondary{ background:transparent; border:1px solid rgba(255,255,255,0.06); color:#dbeafe; font-weight:600; padding:8px 12px; }
+  .small{ font-size:13px; opacity:0.9; }
+
+  /* balloons */
+  .balloon{
+    position:absolute; bottom:-140px; width:72px; height:96px; border-radius:60% 60% 52% 52%; display:flex; align-items:center; justify-content:center;
+    transform-origin:center bottom;
+    filter: drop-shadow(0 8px 18px rgba(2,6,23,0.5));
+  }
+  .balloon .string{ position:absolute; bottom:-70px; width:2px; height:70px; background: rgba(255,255,255,0.06); left:50%; transform:translateX(-50%); border-radius:2px; }
+  .balloon[data-color="a"]{ background: linear-gradient(180deg,#ffecd2,#ff6b6b); left:12%; animation:floatA 7s ease-in-out infinite; }
+  .balloon[data-color="b"]{ background: linear-gradient(180deg,#d6fcff,#7bdff6); left:28%; width:62px; height:84px; animation:floatB 6.2s ease-in-out infinite; }
+  .balloon[data-color="c"]{ background: linear-gradient(180deg,#e6e6ff,#8b5cf6); left:48%; width:78px; height:104px; animation:floatC 8s ease-in-out infinite; }
+  .balloon[data-color="d"]{ background: linear-gradient(180deg,#fff1b6,#ff9f43); left:66%; width:66px; height:92px; animation:floatA 7.6s ease-in-out infinite; }
+  .balloon[data-color="e"]{ background: linear-gradient(180deg,#b8ffcf,#39d98a); left:82%; width:70px; height:92px; animation:floatB 6.8s ease-in-out infinite; }
+
+  @keyframes floatA { 0%{transform: translateY(0) rotate(-3deg)} 50%{transform: translateY(-160px) rotate(3deg)} 100%{transform: translateY(0) rotate(-3deg)} }
+  @keyframes floatB { 0%{transform: translateY(0) rotate(2deg)} 50%{transform: translateY(-140px) rotate(-2deg)} 100%{transform: translateY(0) rotate(2deg)} }
+  @keyframes floatC { 0%{transform: translateY(0) rotate(-1deg)} 50%{transform: translateY(-200px) rotate(1deg)} 100%{transform: translateY(0) rotate(-1deg)} }
+
+  /* confetti canvas covers full card */
+  canvas.confetti{ position:absolute; inset:0; pointer-events:none; }
+
+  /* modal */
+  .modal{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background: linear-gradient(180deg, rgba(3,6,23,0.6), rgba(2,6,23,0.85)); z-index:30;
+    opacity:0; pointer-events:none; transition:all .25s ease;
+  }
+  .modal.open{ opacity:1; pointer-events:auto; }
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.05));
+    border-radius:14px; padding:20px; max-width:700px; width:95%; text-align:center;
+  }
+  .card h2{ margin:4px 0 12px 0; font-size:28px; }
+  .card p{ margin:0 0 12px 0; color:#e6eef8; line-height:1.5; }
+  .close{ margin-top:8px; }
+
+  /* responsive */
+  @media (max-width:880px){
+    .stage{ grid-template-columns:1fr; padding:18px; min-height:680px; }
+    .side{ order: -1; grid-row:1; }
+    .balloon{ display:none; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <!-- balloons (pure CSS) -->
+  <div class="balloon" data-color="a" aria-hidden="true"><div class="string"></div></div>
+  <div class="balloon" data-color="b" aria-hidden="true"><div class="string"></div></div>
+  <div class="balloon" data-color="c" aria-hidden="true"><div class="string"></div></div>
+  <div class="balloon" data-color="d" aria-hidden="true"><div class="string"></div></div>
+  <div class="balloon" data-color="e" aria-hidden="true"><div class="string"></div></div>
+
+  <!-- confetti canvas -->
+  <canvas class="confetti" id="confetti"></canvas>
+
+  <div class="hero">
+    <h1 id="title">Happy Birthday, <span id="name">Aslı</span> 🎉</h1>
+    <div class="subtitle" id="subtitle">Bugün senin günün — kutlu olsun!</div>
+
+    <div class="message" id="mainMessage" aria-live="polite">
+      Doğum günün kutlu olsun iyiki doğdunnnn ve iyiki arkadaşsimsin 🥹💗🎉
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:6px; align-items:center;">
+      <button class="btn" id="revealBtn" aria-haspopup="dialog">🎁 Sürprizi Aç</button>
+      <button class="btn secondary" id="shareBtn">Linki Kopyala</button>
+      <div style="margin-left:auto; font-size:13px;" class="small">25 Ağustos için hazır ✅</div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="photo-frame" id="photoFrame">
+      <img id="photo" src="" alt="Arkadaşın fotoğrafı yok — yüklemek için aşağıyı kullan." style="display:none" />
+      <div id="photoPlaceholder" style="text-align:center; padding:16px; color:#cfe9ff;">
+        Fotoğraf yükle (isteğe bağlı)
+      </div>
+    </div>
+
+    <div class="upload">
+      <input id="fileInput" type="file" accept="image/*" style="flex:1"/>
+      <button class="btn" id="removePhoto">Kaldır</button>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn" id="playMusic">🔊 Müzik Aç</button>
+      <button class="btn secondary" id="langBtn">EN / TR</button>
+    </div>
+
+    <div style="margin-top:auto; font-size:13px; color:#b6c6d9;">Sayfayı ücretsiz yayınlamak için: GitHub Pages kullan. (Yardım istersen adım adım anlatırım)</div>
+  </div>
+</div>
+
+<!-- modal for reveal -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="card" role="document">
+    <h2>Mutlu Yıllar <span id="modalName">Aslı</span>! 🎉</h2>
+    <p id="modalMessage">Doğum günün kutlu olsun iyiki doğdunnnn ve iyiki arkadaşsimsin 🥹💗🎉</p>
+    <button class="btn close" id="closeModal">Kapat</button>
+  </div>
+</div>
+
+<!-- optional audio (replace src with direct mp3 URL or leave empty) -->
+<audio id="bgAudio" loop crossorigin="anonymous">
+  <!-- örnek: <source src="https://example.com/song.mp3" type="audio/mpeg"> -->
+</audio>
+
+<script>
+/* ======= KİŞİSELLEŞTİRME: burayı düzenle ======= */
+/* Ad, mesaj ve varsayılan dil burada değiştirilebilir */
+const CONFIG = {
+  NAME: "Aslı",
+  MESSAGE: "Doğum günün kutlu olsun iyiki doğdunnnn ve iyiki arkadaşsimsin 🥹💗🎉",
+  DEFAULT_LANG: "tr",
+  MUSIC_URL: "",
+};
+/* ================================================= */
+
+document.getElementById('name').textContent = CONFIG.NAME;
+document.getElementById('modalName').textContent = CONFIG.NAME;
+document.getElementById('mainMessage').innerHTML = CONFIG.MESSAGE;
+document.getElementById('modalMessage').innerHTML = CONFIG.MESSAGE;
+document.getElementById('title').setAttribute('aria-label', 'Happy Birthday ' + CONFIG.NAME);
+
+const audio = document.getElementById('bgAudio');
+if(CONFIG.MUSIC_URL){
+  audio.innerHTML = `<source src="${CONFIG.MUSIC_URL}" type="audio/mpeg">`;
+}
+
+const revealBtn = document.getElementById('revealBtn');
+const modal = document.getElementById('modal');
+const closeModal = document.getElementById('closeModal');
+const confettiCanvas = document.getElementById('confetti');
+const shareBtn = document.getElementById('shareBtn');
+const playMusic = document.getElementById('playMusic');
+const langBtn = document.getElementById('langBtn');
+
+revealBtn.addEventListener('click', openModal);
+closeModal.addEventListener('click', closeModalFn);
+shareBtn.addEventListener('click', copyLink);
+playMusic.addEventListener('click', toggleMusic);
+langBtn.addEventListener('click', toggleLang);
+
+function openModal(){
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  runConfetti(120);
+  // try to autoplay audio if present (may be blocked)
+  setTimeout(()=>{ if(audio.src){ audio.play().catch(()=>{}); } }, 300);
+}
+
+function closeModalFn(){
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+// Copy current URL (useful after deploy)
+function copyLink(){
+  const url = location.href;
+  navigator.clipboard?.writeText(url).then(()=> {
+    shareBtn.textContent = "Kopyalandı ✅";
+    setTimeout(()=> shareBtn.textContent = "Linki Kopyala", 2000);
+  }).catch(()=> {
+    alert("Tarayıcınız panoya erişime izin vermiyor. URL'yi manuel kopyalayın: " + url);
+  });
+}
+
+// Music toggle
+function toggleMusic(){
+  if(!audio.src){
+    alert("Müzik eklemek için CONFIG.MUSIC_URL kısmına mp3 linki koy (veya YouTube yerine mp3 URL'si kullan).");
+    return;
+  }
+  if(audio.paused){ audio.play(); playMusic.textContent = "🔈 Müzik Durdur"; }
+  else { audio.pause(); playMusic.textContent = "🔊 Müzik Aç"; }
+}
+
+// language toggle (çift dilli basit örnek)
+let lang = CONFIG.DEFAULT_LANG || 'tr';
+function toggleLang(){
+  if(lang === 'tr'){
+    lang = 'en';
+    document.getElementById('subtitle').textContent = "Today's your day — celebrate!";
+    document.querySelector('.small').textContent = "Ready for Aug 25 ✅";
+    langBtn.textContent = "TR / EN";
+    revealBtn.textContent = "Open Surprise";
+    shareBtn.textContent = "Copy Link";
+  } else {
+    lang = 'tr';
+    document.getElementById('subtitle').textContent = "Bugün senin günün — kutlu olsun!";
+    document.querySelector('.small').textContent = "25 Ağustos için hazır ✅";
+    langBtn.textContent = "EN / TR";
+    revealBtn.textContent = "🎁 Sürprizi Aç";
+    shareBtn.textContent = "Linki Kopyala";
+  }
+}
+
+/* photo upload */
+const fileInput = document.getElementById('fileInput');
+const photo = document.getElementById('photo');
+const photoPlaceholder = document.getElementById('photoPlaceholder');
+const removePhoto = document.getElementById('removePhoto');
+
+fileInput.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const url = URL.createObjectURL(f);
+  photo.src = url; photo.style.display = 'block';
+  photoPlaceholder.style.display = 'none';
+});
+removePhoto.addEventListener('click', ()=>{
+  photo.src = ""; photo.style.display = 'none';
+  photoPlaceholder.style.display = 'block';
+  fileInput.value = "";
+});
+
+/* ====== lightweight confetti (canvas) ====== */
+function runConfetti(amount=100){
+  const c = confettiCanvas;
+  const ctx = c.getContext('2d');
+  let w = c.width = c.offsetWidth;
+  let h = c.height = c.offsetHeight;
+  window.addEventListener('resize', ()=>{ w=c.width=c.offsetWidth; h=c.height=c.offsetHeight; });
+
+  const pieces = [];
+  for(let i=0;i<amount;i++){
+    pieces.push({
+      x: Math.random()*w,
+      y: Math.random()*h - h,
+      r: Math.random()*8+4,
+      d: Math.random()*0.9+0.1,
+      color: ['#ff6b6b','#ffd166','#6be7ff','#9b8cff','#7cf0b3'][Math.floor(Math.random()*5)],
+      tilt: Math.random()*10-5,
+      tiltSpeed: Math.random()*0.1+0.05
+    });
+  }
+  let t = 0;
+  function frame(){
+    ctx.clearRect(0,0,w,h);
+    for(let p of pieces){
+      p.y += 2 + p.d*4;
+      p.x += Math.sin(t/10) * 1.5;
+      p.tilt += p.tiltSpeed;
+      ctx.save();
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.tilt*0.02);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r*0.6);
+      ctx.restore();
+    }
+    t += 1;
+    // stop condition: when most pieces leave screen
+    const alive = pieces.filter(p=>p.y < h+40).length;
+    if(alive > 0) requestAnimationFrame(frame);
+    else ctx.clearRect(0,0,w,h);
+  }
+  frame();
+}
+
+/* small accessibility: close modal on Escape */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && modal.classList.contains('open')) closeModalFn();
+});
+
+/* Make share button visible on load for some older browsers */
+if(!navigator.clipboard) shareBtn.style.display
